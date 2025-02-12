@@ -9,11 +9,11 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh; /* جعل الجسم يملأ كامل الشاشة */
+            height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
             background: linear-gradient(to right, #4facfe, #00f2fe);
-            text-align: center; /* محاذاة النص في المنتصف */
+            text-align: center;
         }
         .container {
             width: 90%;
@@ -22,7 +22,7 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
-            direction: rtl; /* التأكد من أن النص العربي يعرض من اليمين لليسار */
+            direction: rtl;
         }
         .hidden { display: none; }
         .modal {
@@ -57,7 +57,7 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             text-align: center;
-            direction: ltr; /* محاذاة النص في الحقول من اليسار لليمين */
+            direction: ltr;
         }
         .student-list {
             list-style: none;
@@ -71,7 +71,7 @@
             cursor: pointer;
             transition: background 0.3s;
             display: flex;
-            justify-content: space-between; /* جعل النص في الجهة اليسرى والخيارات في الجهة اليمنى */
+            justify-content: space-between;
             align-items: center;
         }
         .student-list li:hover {
@@ -91,11 +91,25 @@
             border-radius: 10px;
             margin-bottom: 15px;
         }
+        /* تنسيق الجدول لعرض الدرجات */
+        .grades-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .grades-table th, .grades-table td {
+            padding: 10px;
+            text-align: right;
+            border: 1px solid #ddd;
+        }
+        .grades-table th {
+            background-color: #f2f2f2;
+        }
     </style>
 </head>
 <body>
     <div class="container" id="welcome-screen">
-        <img src="مدرسه.jpg" alt="شعار المدرسة" class="school-logo">
+        <img src="school-logo.png" alt="شعار المدرسة" class="school-logo">
         <h2>مرحبًا بكم في نظام درجات الطلاب</h2>
         <button onclick="startApp()">بدء</button>
     </div>
@@ -135,7 +149,7 @@
         <button onclick="addStudent()">إضافة طالب</button>
         <button onclick="disableAdminMode()">إلغاء وضع المشرف</button>
     </div>
-    
+
     <div id="edit-modal" class="modal hidden">
         <h3>تعديل بيانات الطالب</h3>
         <input type="text" id="edit-student-name" placeholder="اسم الطالب">
@@ -152,7 +166,7 @@
     </div>
 
     <script>
-        let students = [{ name: "أحمد", grades: "عربي: 95, إسلامية: 88, إنجليزي: 76, اجتماعية: 85, أحياء: 92, فيزياء: 80, كيمياء: 78, حاسوب: 90", password: "1234" }];
+        let students = [{ name: "أحمد", grades: { arabic: 95, islamic: 88, english: 76, social: 85, biology: 92, physics: 80, chemistry: 78, computer: 90 }, password: "1234" }];
         let adminMode = false;
 
         function startApp() {
@@ -217,7 +231,7 @@
             if (name && arabic && islamic && english && social && biology && physics && chemistry && computer && password) {
                 students.push({
                     name: name,
-                    grades: `عربي: ${arabic}, إسلامية: ${islamic}, إنجليزي: ${english}, اجتماعية: ${social}, أحياء: ${biology}, فيزياء: ${physics}, كيمياء: ${chemistry}, حاسوب: ${computer}`,
+                    grades: { arabic, islamic, english, social, biology, physics, chemistry, computer },
                     password: password
                 });
                 alert("تم إضافة الطالب بنجاح!");
@@ -230,21 +244,29 @@
         function editStudent(index) {
             let student = students[index];
             document.getElementById("edit-student-name").value = student.name;
-            document.getElementById("edit-student-arabic").value = student.grades.split(",")[0].split(":")[1].trim();
-            document.getElementById("edit-student-islamic").value = student.grades.split(",")[1].split(":")[1].trim();
-            document.getElementById("edit-student-english").value = student.grades.split(",")[2].split(":")[1].trim();
-            document.getElementById("edit-student-social").value = student.grades.split(",")[3].split(":")[1].trim();
-            document.getElementById("edit-student-biology").value = student.grades.split(",")[4].split(":")[1].trim();
-            document.getElementById("edit-student-physics").value = student.grades.split(",")[5].split(":")[1].trim();
-            document.getElementById("edit-student-chemistry").value = student.grades.split(",")[6].split(":")[1].trim();
-            document.getElementById("edit-student-computer").value = student.grades.split(",")[7].split(":")[1].trim();
+            document.getElementById("edit-student-arabic").value = student.grades.arabic;
+            document.getElementById("edit-student-islamic").value = student.grades.islamic;
+            document.getElementById("edit-student-english").value = student.grades.english;
+            document.getElementById("edit-student-social").value = student.grades.social;
+            document.getElementById("edit-student-biology").value = student.grades.biology;
+            document.getElementById("edit-student-physics").value = student.grades.physics;
+            document.getElementById("edit-student-chemistry").value = student.grades.chemistry;
+            document.getElementById("edit-student-computer").value = student.grades.computer;
 
             document.getElementById("edit-modal").classList.remove("hidden");
 
-            // حفظ التعديلات
             window.saveEdits = function() {
                 student.name = document.getElementById("edit-student-name").value;
-                student.grades = `عربي: ${document.getElementById("edit-student-arabic").value}, إسلامية: ${document.getElementById("edit-student-islamic").value}, إنجليزي: ${document.getElementById("edit-student-english").value}, اجتماعية: ${document.getElementById("edit-student-social").value}, أحياء: ${document.getElementById("edit-student-biology").value}, فيزياء: ${document.getElementById("edit-student-physics").value}, كيمياء: ${document.getElementById("edit-student-chemistry").value}, حاسوب: ${document.getElementById("edit-student-computer").value}`;
+                student.grades = {
+                    arabic: document.getElementById("edit-student-arabic").value,
+                    islamic: document.getElementById("edit-student-islamic").value,
+                    english: document.getElementById("edit-student-english").value,
+                    social: document.getElementById("edit-student-social").value,
+                    biology: document.getElementById("edit-student-biology").value,
+                    physics: document.getElementById("edit-student-physics").value,
+                    chemistry: document.getElementById("edit-student-chemistry").value,
+                    computer: document.getElementById("edit-student-computer").value
+                };
                 closeModal("edit-modal");
                 updateStudentList();
             };
