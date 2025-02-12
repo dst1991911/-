@@ -70,6 +70,9 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background 0.3s;
+            display: flex;
+            justify-content: space-between; /* جعل النص في الجهة اليسرى والخيارات في الجهة اليمنى */
+            align-items: center;
         }
         .student-list li:hover {
             background: #ddd;
@@ -133,27 +136,44 @@
         <button onclick="disableAdminMode()">إلغاء وضع المشرف</button>
     </div>
     
+    <div id="edit-modal" class="modal hidden">
+        <h3>تعديل بيانات الطالب</h3>
+        <input type="text" id="edit-student-name" placeholder="اسم الطالب">
+        <input type="text" id="edit-student-arabic" placeholder="اللغة العربية">
+        <input type="text" id="edit-student-islamic" placeholder="التربية الإسلامية">
+        <input type="text" id="edit-student-english" placeholder="الإنجليزي">
+        <input type="text" id="edit-student-social" placeholder="الدراسات الاجتماعية">
+        <input type="text" id="edit-student-biology" placeholder="الأحياء">
+        <input type="text" id="edit-student-physics" placeholder="الفيزياء">
+        <input type="text" id="edit-student-chemistry" placeholder="الكيمياء">
+        <input type="text" id="edit-student-computer" placeholder="الحاسوب">
+        <button onclick="saveEdits()">حفظ التعديلات</button>
+        <button onclick="closeModal('edit-modal')">إلغاء</button>
+    </div>
+
     <script>
-        let students = [{ name: "أحمد", grades: "95, 88, 76", password: "1234" }];
+        let students = [{ name: "أحمد", grades: "عربي: 95, إسلامية: 88, إنجليزي: 76, اجتماعية: 85, أحياء: 92, فيزياء: 80, كيمياء: 78, حاسوب: 90", password: "1234" }];
         let adminMode = false;
-        
+
         function startApp() {
             document.getElementById("welcome-screen").classList.add("hidden");
             document.getElementById("main-screen").classList.remove("hidden");
             updateStudentList();
         }
-        
+
         function updateStudentList() {
             let list = document.getElementById("student-list");
             list.innerHTML = "";
             students.forEach((student, index) => {
                 let li = document.createElement("li");
-                li.textContent = student.name;
-                li.onclick = () => openPasswordModal(index);
+                li.innerHTML = `${student.name}`;
+                if (adminMode) {
+                    li.innerHTML += `<button onclick="editStudent(${index})">تعديل</button> <button onclick="deleteStudent(${index})">حذف</button>`;
+                }
                 list.appendChild(li);
             });
         }
-        
+
         function filterStudents() {
             let search = document.getElementById("search").value.toLowerCase();
             let list = document.querySelectorAll(".student-list li");
@@ -161,42 +181,27 @@
                 li.style.display = li.textContent.toLowerCase().includes(search) ? "block" : "none";
             });
         }
-        
-        function openPasswordModal(index) {
-            document.getElementById("password-modal").classList.remove("hidden");
-            document.getElementById("password-modal").dataset.index = index;
-        }
-        
-        function checkPassword() {
-            let index = document.getElementById("password-modal").dataset.index;
-            let inputPass = document.getElementById("student-password").value;
-            if (students[index].password === inputPass) {
-                alert("الدرجات: " + students[index].grades);
-                closeModal("password-modal");
-            } else {
-                alert("رمز الدخول خاطئ!");
-            }
-        }
-        
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.add("hidden");
-        }
-        
+
         function openSettings() {
             document.getElementById("admin-modal").classList.remove("hidden");
         }
-        
+
         function checkAdmin() {
             let inputPass = document.getElementById("admin-password").value;
             if (inputPass === "9999") {
                 adminMode = true;
                 document.getElementById("admin-panel").classList.remove("hidden");
                 closeModal("admin-modal");
+                updateStudentList();
             } else {
                 alert("رمز المشرف خاطئ!");
             }
         }
-        
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add("hidden");
+        }
+
         function addStudent() {
             let name = document.getElementById("new-student-name").value;
             let arabic = document.getElementById("new-student-arabic").value;
@@ -215,27 +220,39 @@
                     grades: `عربي: ${arabic}, إسلامية: ${islamic}, إنجليزي: ${english}, اجتماعية: ${social}, أحياء: ${biology}, فيزياء: ${physics}, كيمياء: ${chemistry}, حاسوب: ${computer}`,
                     password: password
                 });
+                alert("تم إضافة الطالب بنجاح!");
                 updateStudentList();
-
-                // مسح الحقول بعد الإضافة
-                document.getElementById("new-student-name").value = '';
-                document.getElementById("new-student-arabic").value = '';
-                document.getElementById("new-student-islamic").value = '';
-                document.getElementById("new-student-english").value = '';
-                document.getElementById("new-student-social").value = '';
-                document.getElementById("new-student-biology").value = '';
-                document.getElementById("new-student-physics").value = '';
-                document.getElementById("new-student-chemistry").value = '';
-                document.getElementById("new-student-computer").value = '';
-                document.getElementById("new-student-password").value = '';
             } else {
-                alert("من فضلك، املأ جميع الحقول.");
+                alert("من فضلك أكمل جميع الحقول!");
             }
         }
 
-        function disableAdminMode() {
-            adminMode = false;
-            document.getElementById("admin-panel").classList.add("hidden");
+        function editStudent(index) {
+            let student = students[index];
+            document.getElementById("edit-student-name").value = student.name;
+            document.getElementById("edit-student-arabic").value = student.grades.split(",")[0].split(":")[1].trim();
+            document.getElementById("edit-student-islamic").value = student.grades.split(",")[1].split(":")[1].trim();
+            document.getElementById("edit-student-english").value = student.grades.split(",")[2].split(":")[1].trim();
+            document.getElementById("edit-student-social").value = student.grades.split(",")[3].split(":")[1].trim();
+            document.getElementById("edit-student-biology").value = student.grades.split(",")[4].split(":")[1].trim();
+            document.getElementById("edit-student-physics").value = student.grades.split(",")[5].split(":")[1].trim();
+            document.getElementById("edit-student-chemistry").value = student.grades.split(",")[6].split(":")[1].trim();
+            document.getElementById("edit-student-computer").value = student.grades.split(",")[7].split(":")[1].trim();
+
+            document.getElementById("edit-modal").classList.remove("hidden");
+
+            // حفظ التعديلات
+            window.saveEdits = function() {
+                student.name = document.getElementById("edit-student-name").value;
+                student.grades = `عربي: ${document.getElementById("edit-student-arabic").value}, إسلامية: ${document.getElementById("edit-student-islamic").value}, إنجليزي: ${document.getElementById("edit-student-english").value}, اجتماعية: ${document.getElementById("edit-student-social").value}, أحياء: ${document.getElementById("edit-student-biology").value}, فيزياء: ${document.getElementById("edit-student-physics").value}, كيمياء: ${document.getElementById("edit-student-chemistry").value}, حاسوب: ${document.getElementById("edit-student-computer").value}`;
+                closeModal("edit-modal");
+                updateStudentList();
+            };
+        }
+
+        function deleteStudent(index) {
+            students.splice(index, 1);
+            updateStudentList();
         }
     </script>
 </body>
