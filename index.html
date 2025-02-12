@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>درجات الطلاب</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* جعل الجسم يملأ كامل الشاشة */
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            text-align: center; /* محاذاة النص في المنتصف */
+        }
+        .container {
+            width: 90%;
+            max-width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+            direction: rtl; /* التأكد من أن النص العربي يعرض من اليمين لليسار */
+        }
+        .hidden { display: none; }
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+            direction: ltr; /* محاذاة النص في الحقول من اليسار لليمين */
+        }
+        .student-list {
+            list-style: none;
+            padding: 0;
+        }
+        .student-list li {
+            background: #eee;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .student-list li:hover {
+            background: #ddd;
+        }
+        .settings-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .school-logo {
+            width: 120px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="welcome-screen">
+        <img src="صور/مدرسه.jpg" alt="شعار المدرسة" class="school-logo">
+        <h2>مرحبًا بكم في نظام درجات الطلاب</h2>
+        <button onclick="startApp()">بدء</button>
+    </div>
+    
+    <div class="container hidden" id="main-screen">
+        <input type="text" id="search" placeholder="ابحث عن اسم الطالب" onkeyup="filterStudents()">
+        <ul id="student-list" class="student-list"></ul>
+        <button class="settings-btn" onclick="openSettings()">⚙️</button>
+    </div>
+    
+    <div id="password-modal" class="modal hidden">
+        <p>أدخل رمز الدخول:</p>
+        <input type="password" id="student-password">
+        <button onclick="checkPassword()">تأكيد</button>
+        <button onclick="closeModal('password-modal')">إلغاء</button>
+    </div>
+    
+    <div id="admin-modal" class="modal hidden">
+        <p>أدخل رمز المشرف:</p>
+        <input type="password" id="admin-password">
+        <button onclick="checkAdmin()">تفعيل المشرف</button>
+        <button onclick="closeModal('admin-modal')">إلغاء</button>
+    </div>
+    
+    <div class="container hidden" id="admin-panel">
+        <h3>إدارة الطلاب</h3>
+        <input type="text" id="new-student-name" placeholder="اسم الطالب">
+        <input type="text" id="new-student-arabic" placeholder="اللغة العربية">
+        <input type="text" id="new-student-islamic" placeholder="التربية الإسلامية">
+        <input type="text" id="new-student-english" placeholder="الإنجليزي">
+        <input type="text" id="new-student-social" placeholder="الدراسات الاجتماعية">
+        <input type="text" id="new-student-biology" placeholder="الأحياء">
+        <input type="text" id="new-student-physics" placeholder="الفيزياء">
+        <input type="text" id="new-student-chemistry" placeholder="الكيمياء">
+        <input type="text" id="new-student-computer" placeholder="الحاسوب">
+        <input type="password" id="new-student-password" placeholder="رمز الدخول">
+        <button onclick="addStudent()">إضافة طالب</button>
+        <button onclick="disableAdminMode()">إلغاء وضع المشرف</button>
+    </div>
+    
+    <script>
+        let students = [{ name: "أحمد", grades: "95, 88, 76", password: "1234" }];
+        let adminMode = false;
+        
+        function startApp() {
+            document.getElementById("welcome-screen").classList.add("hidden");
+            document.getElementById("main-screen").classList.remove("hidden");
+            updateStudentList();
+        }
+        
+        function updateStudentList() {
+            let list = document.getElementById("student-list");
+            list.innerHTML = "";
+            students.forEach((student, index) => {
+                let li = document.createElement("li");
+                li.textContent = student.name;
+                li.onclick = () => openPasswordModal(index);
+                list.appendChild(li);
+            });
+        }
+        
+        function filterStudents() {
+            let search = document.getElementById("search").value.toLowerCase();
+            let list = document.querySelectorAll(".student-list li");
+            list.forEach(li => {
+                li.style.display = li.textContent.toLowerCase().includes(search) ? "block" : "none";
+            });
+        }
+        
+        function openPasswordModal(index) {
+            document.getElementById("password-modal").classList.remove("hidden");
+            document.getElementById("password-modal").dataset.index = index;
+        }
+        
+        function checkPassword() {
+            let index = document.getElementById("password-modal").dataset.index;
+            let inputPass = document.getElementById("student-password").value;
+            if (students[index].password === inputPass) {
+                alert("الدرجات: " + students[index].grades);
+                closeModal("password-modal");
+            } else {
+                alert("رمز الدخول خاطئ!");
+            }
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add("hidden");
+        }
+        
+        function openSettings() {
+            document.getElementById("admin-modal").classList.remove("hidden");
+        }
+        
+        function checkAdmin() {
+            let inputPass = document.getElementById("admin-password").value;
+            if (inputPass === "9999") {
+                adminMode = true;
+                document.getElementById("admin-panel").classList.remove("hidden");
+                closeModal("admin-modal");
+            } else {
+                alert("رمز المشرف خاطئ!");
+            }
+        }
+        
+        function addStudent() {
+            let name = document.getElementById("new-student-name").value;
+            let arabic = document.getElementById("new-student-arabic").value;
+            let islamic = document.getElementById("new-student-islamic").value;
+            let english = document.getElementById("new-student-english").value;
+            let social = document.getElementById("new-student-social").value;
+            let biology = document.getElementById("new-student-biology").value;
+            let physics = document.getElementById("new-student-physics").value;
+            let chemistry = document.getElementById("new-student-chemistry").value;
+            let computer = document.getElementById("new-student-computer").value;
+            let password = document.getElementById("new-student-password").value;
+
+            if (name && arabic && islamic && english && social && biology && physics && chemistry && computer && password) {
+                students.push({
+                    name: name,
+                    grades: `عربي: ${arabic}, إسلامية: ${islamic}, إنجليزي: ${english}, اجتماعية: ${social}, أحياء: ${biology}, فيزياء: ${physics}, كيمياء: ${chemistry}, حاسوب: ${computer}`,
+                    password: password
+                });
+                updateStudentList();
+
+                // مسح الحقول بعد الإضافة
+                document.getElementById("new-student-name").value = '';
+                document.getElementById("new-student-arabic").value = '';
+                document.getElementById("new-student-islamic").value = '';
+                document.getElementById("new-student-english").value = '';
+                document.getElementById("new-student-social").value = '';
+                document.getElementById("new-student-biology").value = '';
+                document.getElementById("new-student-physics").value = '';
+                document.getElementById("new-student-chemistry").value = '';
+                document.getElementById("new-student-computer").value = '';
+                document.getElementById("new-student-password").value = '';
+            } else {
+                alert("من فضلك، املأ جميع الحقول.");
+            }
+        }
+
+        function disableAdminMode() {
+            adminMode = false;
+            document.getElementById("admin-panel").classList.add("hidden");
+        }
+    </script>
+</body>
+</html>
